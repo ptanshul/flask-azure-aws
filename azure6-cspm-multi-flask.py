@@ -47,6 +47,24 @@ INSTALL_HINT = {
     "aks":       "pip install azure-mgmt-containerservice",
 }
 
+# CVSS v3.1 base scores assigned per check (worst-case exposure if the check fails)
+CHECK_CVSS = {
+    "no_public_blob":   9.1,  # Critical — unauthenticated public data read
+    "https_only":       7.5,  # High    — cleartext data in transit
+    "tls_1_2_plus":     5.9,  # Medium  — weak TLS negotiation
+    "managed_disk":     4.0,  # Medium  — unmanaged disk integrity risk
+    "boot_diagnostics": 2.5,  # Low     — limits post-incident forensics
+    "no_open_ssh":      9.8,  # Critical — internet-exposed SSH attack surface
+    "no_open_rdp":      9.8,  # Critical — internet-exposed RDP attack surface
+    "soft_delete":      4.3,  # Medium  — accidental / malicious data deletion
+    "purge_protection": 6.5,  # Medium  — permanent secret/key destruction
+    "network_acl_deny": 7.5,  # High    — vault reachable from public internet
+    "no_public_access": 8.1,  # High    — publicly reachable SQL server
+    "rbac_enabled":     8.8,  # High    — privilege escalation in cluster
+    "network_policy":   6.5,  # Medium  — unrestricted pod-to-pod traffic
+    "has_tags":         2.0,  # Low     — governance / cost attribution gap
+}
+
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
