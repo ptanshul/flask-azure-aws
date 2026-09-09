@@ -17,3 +17,4 @@ account_name = raw_id.split("/")[8]  # "appdata"
 
 print(f"Resource Group: {resource_group}")
 # Output: Resource Group: prod-network-rg
+print(pieces)
