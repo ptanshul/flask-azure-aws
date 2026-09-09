@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template_string
 from dotenv import load_dotenv
 from azure.identity import DefaultAzureCredential
 from azure.mgmt.storage import StorageManagementClient
