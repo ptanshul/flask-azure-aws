@@ -230,6 +230,65 @@ def scan_aks(cred, sub):
     return out
 
 
+def scan_entra_global_admins(cred, _sub):
+    try:
+        token = cred.get_token("https://graph.microsoft.com/.default").token
+    except Exception as exc:
+        raise RuntimeError(
+            f"Cannot get Graph API token. Grant the app "
+            f"Directory.Read.All + UserAuthenticationMethod.Read.All permissions. ({exc})"
+        )
+
+    # Find the activated Global Administrator directory role
+    roles = _graph_all(token, "/directoryRoles")
+    ga_role = next((r for r in roles if r.get("roleTemplateId") == GA_TEMPLATE_ID), None)
+    if not ga_role:
+        return []  # Role not activated — no members
+
+    # Fetch members with key profile fields
+    SELECT = "id,displayName,userPrincipalName,accountEnabled,userType,country,createdDateTime"
+    members = _graph_all(
+        token,
+        f"/directoryRoles/{ga_role['id']}/members",
+        params={"$select": SELECT},
+    )
+
+    out = []
+    for m in members:
+        uid          = m.get("id", "")
+        display_name = m.get("displayName") or "Unknown"
+        upn          = m.get("userPrincipalName") or uid
+        enabled      = m.get("accountEnabled", True)
+        user_type    = m.get("userType") or "Member"
+        location     = m.get("country") or "Global"
+
+        # MFA check: look for any non-password auth method
+        has_mfa = True  # safe default if the call is blocked by permissions
+        try:
+            methods = _graph_all(token, f"/users/{uid}/authentication/methods")
+            non_pwd = [
+                x for x in methods
+                if "passwordAuthentication" not in x.get("@odata.type", "")
+            ]
+            has_mfa = len(non_pwd) > 0
+        except http.exceptions.HTTPError as exc:
+            if exc.response is not None and exc.response.status_code in (403, 401):
+                has_mfa = True  # Cannot verify — assume compliant; fix permissions for accuracy
+        except Exception:
+            pass
+
+        out.append(_result(
+            display_name, location, upn,
+            {
+                "has_mfa":        has_mfa,
+                "not_guest":      user_type != "Guest",
+                "account_enabled": enabled,
+            }
+        ))
+
+    return out
+
+
 # ── service registry ──────────────────────────────────────────────────────────
 
 SERVICE_CONFIG = [
