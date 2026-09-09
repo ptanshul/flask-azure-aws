@@ -20,5 +20,5 @@ for account in client.storage_accounts.list():
   print(f"Min TLS Version:  {account.minimum_tls_version}")
   print(f"Public Access:    {account.allow_blob_public_access}")
   print(f"Tags:             {account.tags}")
-  print(f"ID:             {account.id}")
+  print(f"public access True or False:             {account.allow_blob_public_access}")
   print("=" * 60)
