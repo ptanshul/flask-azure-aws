@@ -52,11 +52,12 @@ def get_client():
 
 def scan_defender_plans(client):
     scope = f"/subscriptions/{SUBSCRIPTION_ID}"
-    # Newer SDK (3.0+) requires scope_id as a positional argument
     try:
-        items = client.pricings.list(scope_id=scope)
+        result = client.pricings.list(scope_id=scope)
     except TypeError:
-        items = client.pricings.list()
+        result = client.pricings.list()
+    # Newer SDK returns a PricingList model with a .value list, not a plain iterator
+    items = result.value if hasattr(result, "value") else result
     plans = []
     for p in items:
         enabled = p.pricing_tier == "Standard"
