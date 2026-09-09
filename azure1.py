@@ -11,4 +11,5 @@ client = StorageManagementClient(
 
 for account in client.storage_accounts.list():
   rg = account.id.split("/")[4]
+  print(account.id)
   print(f"Account: {account.name} | RG: {rg}")
