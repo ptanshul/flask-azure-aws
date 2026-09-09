@@ -1,4 +1,5 @@
 import os
+import requests as http
 from flask import Flask, render_template_string, jsonify
 from dotenv import load_dotenv
 from azure.identity import DefaultAzureCredential
@@ -60,10 +61,47 @@ CHECK_CVSS = {
     "purge_protection": 6.5,  # Medium  — permanent secret/key destruction
     "network_acl_deny": 7.5,  # High    — vault reachable from public internet
     "no_public_access": 8.1,  # High    — publicly reachable SQL server
-    "rbac_enabled":     8.8,  # High    — privilege escalation in cluster
+    "rbac_enabled":     8.8,  # High     — privilege escalation in cluster
     "network_policy":   6.5,  # Medium  — unrestricted pod-to-pod traffic
     "has_tags":         2.0,  # Low     — governance / cost attribution gap
+    # Entra ID
+    "has_mfa":          9.4,  # Critical — Global Admin with no MFA = full tenant takeover
+    "not_guest":        9.0,  # Critical — external identity holding highest-privilege role
+    "account_enabled":  5.0,  # Medium  — disabled account still holds Global Admin role
 }
+
+# ── Graph API helpers ─────────────────────────────────────────────────────────
+
+GRAPH_BASE = "https://graph.microsoft.com/v1.0"
+GA_TEMPLATE_ID = "62e90394-69f5-4237-9190-012177145e10"  # Global Administrator
+
+
+def _graph_get(token, path, params=None):
+    resp = http.get(
+        f"{GRAPH_BASE}{path}",
+        headers={"Authorization": f"Bearer {token}"},
+        params=params,
+        timeout=30,
+    )
+    resp.raise_for_status()
+    return resp.json()
+
+
+def _graph_all(token, path, params=None):
+    """Follow @odata.nextLink pagination and return all items."""
+    items = []
+    data = _graph_get(token, path, params)
+    items.extend(data.get("value", []))
+    while "@odata.nextLink" in data:
+        resp = http.get(
+            data["@odata.nextLink"],
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=30,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        items.extend(data.get("value", []))
+    return items
 
 
 # ── helpers ───────────────────────────────────────────────────────────────────
