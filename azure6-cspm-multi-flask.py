@@ -230,7 +230,7 @@ def scan_aks(cred, sub):
     return out
 
 
-def scan_entra_global_admins(cred, _sub):
+def scan_entra_global_admins(cred, _):
     try:
         token = cred.get_token("https://graph.microsoft.com/.default").token
     except Exception as exc:
