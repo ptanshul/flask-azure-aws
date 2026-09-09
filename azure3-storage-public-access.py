@@ -9,7 +9,9 @@ client = StorageManagementClient(
     DefaultAzureCredential(), os.getenv("AZURE_SUBSCRIPTION_ID")
 )
 
+total_accounts = 0
 for account in client.storage_accounts.list():
+  total_accounts += 1
   print("=" * 60)
   print(f"Name:             {account.name}")
   print(f"Location:         {account.location}")
@@ -26,3 +28,5 @@ for account in client.storage_accounts.list():
     print(f"Account {account.name} allows public access to blobs.")
   else:
     print(f"Account {account.name} does not allow public access to blobs.")
+
+print(f"\nTotal number of storage accounts: {total_accounts}")
