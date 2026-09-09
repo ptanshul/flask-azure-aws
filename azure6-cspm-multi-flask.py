@@ -236,6 +236,27 @@ def build_services(cred, sub):
     return services
 
 
+def calculate_cvss(services):
+    """Return (score, severity_label, css_class) based on the worst failing check."""
+    max_score = 0.0
+    for svc in services:
+        for resource in svc["resources"]:
+            for check_key, passed in resource["checks"].items():
+                if not passed:
+                    max_score = max(max_score, CHECK_CVSS.get(check_key, 0.0))
+    score = round(max_score, 1)
+    if score == 0.0:
+        return score, "None", "cvss-none"
+    elif score < 4.0:
+        return score, "Low", "cvss-low"
+    elif score < 7.0:
+        return score, "Medium", "cvss-medium"
+    elif score < 9.0:
+        return score, "High", "cvss-high"
+    else:
+        return score, "Critical", "cvss-critical"
+
+
 # ── HTML template ─────────────────────────────────────────────────────────────
 
 TEMPLATE = """<!DOCTYPE html>
@@ -259,6 +280,23 @@ TEMPLATE = """<!DOCTYPE html>
       border: 1px solid rgba(255,255,255,.5); padding: 5px 14px; border-radius: 4px;
     }
     .refresh-btn:hover { background: rgba(255,255,255,.15); }
+    .header-right { display: flex; align-items: center; gap: 18px; }
+    .cvss-widget {
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 10px; padding: 10px 22px; text-align: center; min-width: 130px;
+    }
+    .cvss-widget .cvss-title {
+      font-size: 0.62rem; text-transform: uppercase;
+      letter-spacing: 1.2px; opacity: 0.8; margin-bottom: 4px;
+    }
+    .cvss-widget .cvss-num  { font-size: 2.4rem; font-weight: 800; line-height: 1; letter-spacing: -1px; }
+    .cvss-widget .cvss-sev  { font-size: 0.67rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px; }
+    .cvss-none     { color: #a8e6a3; }
+    .cvss-low      { color: #ffe082; }
+    .cvss-medium   { color: #ffb74d; }
+    .cvss-high     { color: #ff8a65; }
+    .cvss-critical { color: #ff5252; }
 
     .stats { display: flex; gap: 14px; padding: 20px 32px 0; flex-wrap: wrap; }
     .stat {
@@ -360,7 +398,14 @@ TEMPLATE = """<!DOCTYPE html>
     <h1>Azure CSPM Dashboard</h1>
     <div class="sub">Subscription: {{ subscription_id }}</div>
   </div>
-  <a class="refresh-btn" href="/">&#8635; Refresh</a>
+  <div class="header-right">
+    <div class="cvss-widget">
+      <div class="cvss-title">CVSS Score</div>
+      <div class="cvss-num {{ cvss_css }}">{{ cvss_score }}</div>
+      <div class="cvss-sev {{ cvss_css }}">{{ cvss_label }}</div>
+    </div>
+    <a class="refresh-btn" href="/">&#8635; Refresh</a>
+  </div>
 </header>
 
 <div class="stats">
@@ -507,6 +552,7 @@ def dashboard():
             pct = round(total_c / total_r * 100, 1)
             rate = f"{pct}%"
             rate_class = "c-green" if pct == 100 else ("c-orange" if pct >= 70 else "c-red")
+        cvss_score, cvss_label, cvss_css = calculate_cvss(services)
         return render_template_string(
             TEMPLATE,
             subscription_id=SUBSCRIPTION_ID,
@@ -516,6 +562,9 @@ def dashboard():
             total_non_compliant=total_nc,
             compliance_rate=rate,
             rate_class=rate_class,
+            cvss_score=cvss_score,
+            cvss_label=cvss_label,
+            cvss_css=cvss_css,
         )
     except Exception as exc:
         return f"<pre>Error: {exc}</pre>", 500
