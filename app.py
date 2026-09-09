@@ -2,7 +2,7 @@
 from flask import Flask, jsonify
 from dotenv import load_dotenv
 from azure.identity import DefaultAzureCredential
-from azure.mgmt.resource import ResourceManagementClient
+from azure.mgmt.resource.resources import ResourceManagementClient
 
 load_dotenv()
 
