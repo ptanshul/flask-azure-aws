@@ -22,3 +22,5 @@ for account in client.storage_accounts.list():
   print(f"Tags:             {account.tags}")
   print(f"public access available:             {account.allow_blob_public_access}")
   print("=" * 60)
+  if account.allow_blob_public_access:
+    print(f"Account {account.name} allows public access to blobs.")
