@@ -310,6 +310,9 @@ SERVICE_CONFIG = [
     ("aks",       "AKS Clusters",            "&#9096;",   scan_aks,       "K8s Version",
      [("rbac_enabled", "RBAC"), ("network_policy", "Net Policy"),
       ("has_tags", "Tags")]),
+    ("entra",     "Entra ID Global Admins",  "&#128100;", scan_entra_global_admins, "UPN",
+     [("has_mfa", "Has MFA"), ("not_guest", "Not Guest"),
+      ("account_enabled", "Active Account")]),
 ]
 
 
