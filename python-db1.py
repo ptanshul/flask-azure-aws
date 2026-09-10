@@ -3,7 +3,7 @@ import pymssql
 server = "myserver900demo.database.windows.net"
 database = "skilldb"
 username = "myadmin"
-password = "Pass@12345678"  # Your actual password
+password = "Pass@123"  # Your actual password
 
 try:
     print(f"Connecting to {server}...")
