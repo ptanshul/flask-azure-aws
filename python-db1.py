@@ -14,7 +14,7 @@ if not drivers:
 selected_driver = drivers[0]
 print(f"Using driver: {selected_driver}")
 
-server = "myserver900.database.windows.net"  # Set your actual server name
+server = "myserver900demo.database.windows.net"  # Set your actual server name
 database = "skilldb"
 username = "myadmin"
 password = "Pass@123"                  # Set your actual password
