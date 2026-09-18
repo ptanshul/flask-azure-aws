@@ -27,3 +27,6 @@ def divide(a: int, b: int):
 @app.get("/square")
 def square(x: int):
     return {"result": x ** 2}
+@app.get("/cube")
+def cube(x: int):
+    return {"result": x ** 3}
