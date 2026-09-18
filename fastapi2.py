@@ -23,3 +23,7 @@ def divide(a: int, b: int):
     if b == 0:
         return {"error": "Division by zero is not allowed."}
     return {"result": a / b}
+
+@app.get("/square")
+def square(x: int):
+    return {"result": x ** 2}
